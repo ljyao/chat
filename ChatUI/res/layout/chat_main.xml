@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/chat_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <com.chat.ui.DropdownListView
+        android:id="@+id/chat_message_listview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/bottom"
+        android:background="@color/white"
+        android:cacheColorHint="@color/transparent"
+        android:divider="@null"
+        android:listSelector="@color/transparent" />
+
+    <LinearLayout
+        android:id="@+id/bottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical" >
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.1dp"
+            android:background="@color/gray" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@drawable/ic_chat_bottom_shape" >
+
+            <ImageView
+                android:id="@+id/chat_image_face"
+                android:layout_width="30dip"
+                android:layout_height="30dip"
+                android:layout_alignParentLeft="true"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="4dip"
+                android:padding="2dp"
+                android:src="@drawable/ic_chat_emo_normal"
+                android:visibility="visible" />
+
+            <ImageView
+                android:id="@+id/chat_add"
+                android:layout_width="30dip"
+                android:layout_height="30dip"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="7dp"
+                android:layout_toRightOf="@+id/chat_image_face"
+                android:padding="2dp"
+                android:src="@drawable/ic_btn_add"
+                android:visibility="visible" />
+
+            <EditText
+                android:id="@+id/chat_input_sms"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="9dip"
+                android:layout_marginRight="9dip"
+                android:layout_toLeftOf="@+id/chat_send_sms"
+                android:layout_toRightOf="@id/chat_add"
+                android:hint="@string/chat_edittip"
+                android:padding="4dip" />
+
+            <Button
+                android:id="@+id/chat_send_sms"
+                android:layout_width="50dp"
+                android:layout_height="40dp"
+                android:layout_alignBottom="@id/chat_input_sms"
+                android:layout_alignParentRight="true"
+                android:layout_alignTop="@id/chat_input_sms"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="5dip"
+                android:layout_marginRight="5dip"
+                android:background="@drawable/ic_chat_button_shape"
+                android:gravity="center"
+                android:text="@string/send"
+                android:textColor="#578fbe"
+                android:textSize="14sp" />
+        </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.1dp"
+            android:background="@color/gray" />
+
+        <include
+            android:id="@+id/chat_face_container"
+            layout="@layout/chat_face_container"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/chat_add_container"
+            layout="@layout/chat_more_container"
+            android:visibility="gone" />
+    </LinearLayout>
+
+</RelativeLayout>

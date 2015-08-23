@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/id_menu_chat_clearRecords"
+        android:title="清空聊天记录"/>
+    <item
+        android:id="@+id/share"
+        android:title="分享"/>
+    <item
+        android:id="@+id/about"
+        android:title="关于"/>
+
+</menu>
