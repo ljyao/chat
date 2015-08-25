@@ -9,6 +9,8 @@ import java.util.concurrent.TimeUnit;
 
 import com.example.chatui.R;
 
+import android.app.Activity;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Handler;
@@ -20,7 +22,7 @@ import android.widget.ImageView;
  */
 public class SDCardImageLoader {
     // 缓存
-    private LruCache<String, Bitmap> imageCache;
+    private  LruCache<CompressParam, Bitmap> imageCache;
     
     private long counter = 0;
     
@@ -40,10 +42,12 @@ public class SDCardImageLoader {
     
     private BlockingQueue<Runnable> blockingDeque;
     
-    public SDCardImageLoader(int screenW, int screenH) {
-        this.screenW = screenW;
-        this.screenH = screenH;
-        
+    private Context mContext;
+    
+    public SDCardImageLoader(Context context) {
+        this.screenW = ScreenUtils.getScreenW((Activity) context);
+        this.screenH = ScreenUtils.getScreenH((Activity) context);
+        mContext = context;
         handler = new Handler();
         
         blockingDeque = new PriorityBlockingQueue<Runnable>(1000, new Comparator<Runnable>() {
@@ -61,34 +65,24 @@ public class SDCardImageLoader {
         
         executorService = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE, TimeUnit.SECONDS, blockingDeque);
         
-        // 获取应用程序最大可用内存
-        int maxMemory = (int) Runtime.getRuntime().maxMemory();
-        int cacheSize = maxMemory / 4;
-        
-        // 设置图片缓存大小为程序最大可用内存的1/8
-        imageCache = new LruCache<String, Bitmap>(cacheSize) {
-            @Override
-            protected int sizeOf(String key, Bitmap value) {
-                return value.getRowBytes() * value.getHeight();
-            }
-        };
+       imageCache=CacheUtil.getInstance();
         
     }
     
     /**
-     * @param smallRate
+     * @param smallSize
      * @param filePath
      * @param callback
      * @return
      */
-    public Bitmap loadDrawable(final boolean isDp, final int smallRate, final String filePath, final ImageCallback callback) {
+    public Bitmap loadDrawable(CompressParam compressParam, final ImageCallback callback) {
         // 如果缓存过就从缓存中取出数据
         
-        if (imageCache.get(filePath) != null) {
-            return imageCache.get(filePath);
+        if (imageCache.get(compressParam) != null) {
+            return imageCache.get(compressParam);
         }
         // 如果缓存没有则读取SD卡
-        MyRunnable runnable = new MyRunnable(isDp, smallRate, filePath, callback);
+        MyRunnable runnable = new MyRunnable(compressParam, callback);
         executorService.submit(runnable);
         return null;
     }
@@ -97,11 +91,7 @@ public class SDCardImageLoader {
         
         private final long priority;
         
-        boolean isDp;
-        
-        int smallRate;
-        
-        String filePath;
+        CompressParam mParam;
         
         ImageCallback callback;
         
@@ -110,22 +100,19 @@ public class SDCardImageLoader {
             return priority > another.priority ? 1 : -1;
         }
         
-        public MyRunnable(final boolean isDp, final int smallRate, final String filePath, final ImageCallback callback) {
+        public MyRunnable(CompressParam compressParam, final ImageCallback callback) {
             this.callback = callback;
-            this.filePath = filePath;
-            this.isDp = isDp;
-            this.smallRate = smallRate;
+            mParam = compressParam;
             counter++;
             priority = counter;
         }
         
         @Override
         public void run() {
-            
             try {
                 BitmapFactory.Options opt = new BitmapFactory.Options();
                 opt.inJustDecodeBounds = true;
-                BitmapFactory.decodeFile(filePath, opt);
+                BitmapFactory.decodeFile(mParam.filePath, opt);
                 
                 // 获取到这个图片的原始宽度和高度
                 int picWidth = opt.outWidth;
@@ -135,11 +122,14 @@ public class SDCardImageLoader {
                 if (picWidth == 0 || picHeight == 0) {
                     return;
                 }
-                
-                // 初始压缩比例
-                opt.inSampleSize = smallRate;
-                if (!isDp) {
-                    
+                if (mParam.type == CompressParam.TYPE_NOMAL) {
+                    opt.inSampleSize = 1;
+                }
+                else if (mParam.type == CompressParam.TYPE_DP) {
+                    int w = ScreenUtils.dp2px(mParam.smallSize, (Activity) mContext);
+                    opt.inSampleSize = Math.round((float) picWidth / (float) w);
+                }
+                else if (mParam.type == CompressParam.TYPE_SCREEN) {
                     // 根据屏的大小和图片大小计算出缩放比例
                     if (picWidth > picHeight) {
                         if (picWidth > screenW)
@@ -150,16 +140,11 @@ public class SDCardImageLoader {
                             opt.inSampleSize = picHeight / screenH;
                     }
                 }
-                else {
-                    int w = ScreenUtils.dp2px(smallRate);
-                    opt.inSampleSize = Math.round((float) picWidth / (float) w);
-                }
-                
                 // 这次再真正地生成一个有像素的，经过缩放了的bitmap
                 opt.inJustDecodeBounds = false;
-                final Bitmap bmp = BitmapFactory.decodeFile(filePath, opt);
+                final Bitmap bmp = BitmapFactory.decodeFile(mParam.filePath, opt);
                 // 存入map
-                imageCache.put(filePath, bmp);
+                imageCache.put(mParam, bmp);
                 
                 handler.post(new Runnable() {
                     public void run() {
@@ -176,23 +161,14 @@ public class SDCardImageLoader {
         
     }
     
-    /**
-     * 异步读取SD卡图片，并按指定的比例进行压缩（最大不超过屏幕像素数）
-     * 
-     * @param smallRate
-     *            压缩比例，不压缩时输入1，此时将按屏幕像素数进行输出
-     * @param filePath
-     *            图片在SD卡的全路径
-     * @param imageView
-     *            组件
-     */
-    public void loadImage(boolean isDp, int smallRate, final String filePath, final ImageView imageView) {
+
+    public void loadImage(final CompressParam compressParam, final ImageView imageView) {
         
-        Bitmap bmp = loadDrawable(isDp, smallRate, filePath, new ImageCallback() {
+        Bitmap bmp = loadDrawable(compressParam, new ImageCallback() {
             
             @Override
             public void imageLoaded(Bitmap bmp) {
-                if (imageView.getTag().equals(filePath)) {
+                if (imageView.getTag().equals(compressParam.filePath)) {
                     if (bmp != null) {
                         imageView.setImageBitmap(bmp);
                     }
@@ -204,14 +180,64 @@ public class SDCardImageLoader {
         });
         
         if (bmp != null) {
-            if (imageView.getTag().equals(filePath)) {
+            if (imageView.getTag().equals(compressParam.filePath)) {
                 imageView.setImageBitmap(bmp);
             }
         }
         else {
             imageView.setImageResource(R.drawable.ic_chat_empty_photo);
         }
+    }
+    
+    public static class CompressParam {
+        /**
+         * TYPE_NOMAL:不压缩
+         * 
+         * @since Ver 1.1
+         */
+        public static final int TYPE_NOMAL = 1;
         
+        /**
+         * TYPE_DP:压缩成smallSize dp宽度
+         * 
+         * @since Ver 1.1
+         */
+        public static final int TYPE_DP = 2;
+        
+        /**
+         * TYPE_SCREEN:按屏幕比例压缩
+         * 
+         * @since Ver 1.1
+         */
+        public static final int TYPE_SCREEN = 3;
+        
+        public int type;
+        
+        public int smallSize = 1;
+        
+        public String filePath = "";
+        
+        @Override
+        public boolean equals(Object o) {
+            if (o == this) {
+                return true;
+            }
+            if (!(o instanceof CompressParam)) {
+                return false;
+            }
+            CompressParam param = (CompressParam) o;
+            if (type == param.type && smallSize == param.smallSize && filePath.equals(param.filePath)) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        
+        @Override
+        public int hashCode() {
+            return type + smallSize + filePath.hashCode();
+        }
     }
     
     // 对外界开放的回调接口

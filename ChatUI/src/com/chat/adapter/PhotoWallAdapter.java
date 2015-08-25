@@ -1,8 +1,10 @@
 package com.chat.adapter;
 
 import java.util.ArrayList;
+
 import com.chat.util.SDCardImageLoader;
 import com.chat.util.ScreenUtils;
+import com.chat.util.SDCardImageLoader.CompressParam;
 import com.example.chatui.R;
 
 import android.annotation.SuppressLint;
@@ -28,7 +30,7 @@ public class PhotoWallAdapter extends BaseAdapter {
         this.context = context;
         this.imagePathList = imagePathList;
         
-        loader = new SDCardImageLoader(ScreenUtils.getScreenW(), ScreenUtils.getScreenH());
+        loader = new SDCardImageLoader(context);
         selectionMap = new SparseBooleanArray();
     }
     
@@ -94,8 +96,11 @@ public class PhotoWallAdapter extends BaseAdapter {
         }
         
         holder.imageView.setTag(filePath);
-        
-        loader.loadImage(true, 50, filePath, holder.imageView);
+        CompressParam param = new CompressParam();
+        param.type = CompressParam.TYPE_DP;
+        param.smallSize = 50;
+        param.filePath = filePath;
+        loader.loadImage(param, holder.imageView);
         return convertView;
     }
     

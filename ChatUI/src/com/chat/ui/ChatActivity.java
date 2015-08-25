@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
@@ -47,6 +48,7 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
 import com.chat.adapter.ChatLVAdapter;
 import com.chat.adapter.FaceGVAdapter;
 import com.chat.adapter.FaceVPAdapter;
@@ -54,6 +56,7 @@ import com.chat.ui.DropdownListView.OnRefreshListenerHeader;
 import com.chat.util.ChatInfo;
 import com.chat.util.ChatUtil;
 import com.chat.util.SDCardImageLoader;
+import com.chat.util.SDCardImageLoader.CompressParam;
 import com.chat.util.ScreenUtils;
 import com.chat.util.Utility;
 import com.example.chatui.R;
@@ -209,8 +212,12 @@ public class ChatActivity extends AppCompatActivity implements OnClickListener, 
 
 	public void sendPic(String imgPath, final String msg) {
 
-		SDCardImageLoader cardImageLoader = new SDCardImageLoader(ScreenUtils.getScreenW(), ScreenUtils.getScreenH());
-		cardImageLoader.loadDrawable(true, 100, imgPath, new ImageCallback() {
+		SDCardImageLoader cardImageLoader = new SDCardImageLoader(this);
+		CompressParam param=new CompressParam();
+		param.type=CompressParam.TYPE_DP;
+		param.smallSize=100;
+		param.filePath=imgPath;
+		cardImageLoader.loadDrawable(param, new ImageCallback() {
 			@Override
 			public void imageLoaded(Bitmap imageDrawable) {
 				String ImageName = null, copyPath;
@@ -535,9 +542,6 @@ public class ChatActivity extends AppCompatActivity implements OnClickListener, 
 	}
 
 	private void init() {
-
-		// 获取屏幕像素
-		ScreenUtils.initScreen(this);
 
 		getSupportActionBar().setDisplayShowHomeEnabled(false);
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);

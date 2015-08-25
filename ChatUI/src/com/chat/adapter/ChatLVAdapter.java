@@ -8,10 +8,12 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
@@ -44,7 +46,6 @@ import com.chat.util.ChatInfo;
 import com.chat.util.ChatUtil;
 import com.chat.util.ScreenUtils;
 import com.example.chatui.R;
-
 import com.nineoldandroids.view.ViewHelper;
 
 @SuppressLint("NewApi")
@@ -222,7 +223,7 @@ public class ChatLVAdapter extends BaseAdapter {
 					}
 					BitmapDrawable bd = new BitmapDrawable(bitmap);
 					Drawable drawable = (Drawable) bd;
-					int val = ScreenUtils.dp2px(30);
+					int val = ScreenUtils.dp2px(30,(Activity)mContext);
 					drawable.setBounds(0, 0, val, val);
 					sb.setSpan(new ImageSpan(drawable, ImageSpan.ALIGN_BOTTOM),
 							m.start(), m.end(),
@@ -272,7 +273,7 @@ public class ChatLVAdapter extends BaseAdapter {
 				BitmapDrawable bd = new BitmapDrawable(bitmap);
 				Drawable drawable = (Drawable) bd;
 				int w, h;
-				w = ScreenUtils.dp2px(200);
+				w = ScreenUtils.dp2px(200,(Activity)mContext);
 				h = Math.round((float) bitmap.getHeight()
 						/ ((float) bitmap.getWidth() / (float) w));
 				drawable.setBounds(0, 0, w, h);// 这里设置图片的大小

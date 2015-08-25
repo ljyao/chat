@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
@@ -86,7 +87,7 @@ public class ChatUtil {
 				Bitmap bitmap = BitmapFactory.decodeStream(context.getAssets().open(png));
 				BitmapDrawable bd = new BitmapDrawable(bitmap);
 				Drawable drawable = (Drawable) bd;
-				int val = ScreenUtils.dp2px(30);
+				int val = ScreenUtils.dp2px(30,(Activity)context);
 				drawable.setBounds(0, 0, val, val);
 				sb.setSpan(new ImageSpan(drawable, ImageSpan.ALIGN_BOTTOM), m.start(), m.end(),
 						Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);

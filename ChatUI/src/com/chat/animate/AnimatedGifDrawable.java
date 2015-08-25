@@ -4,6 +4,7 @@ import java.io.InputStream;
 
 import com.chat.util.ScreenUtils;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.AnimationDrawable;
@@ -15,7 +16,7 @@ public class AnimatedGifDrawable extends AnimationDrawable {
 
 	private int mCurrentIndex = 0;
 	private UpdateListener mListener;
-	Context mContext;
+	private Context mContext;
 
 	public AnimatedGifDrawable(Context context,
 			LruCache<String, Bitmap> imageCache, String num,
@@ -68,7 +69,7 @@ public class AnimatedGifDrawable extends AnimationDrawable {
 	public Drawable getDrawable() {
 		Drawable drawable;
 		drawable = getFrame(mCurrentIndex);
-		int val = ScreenUtils.dp2px(30);
+		int val = ScreenUtils.dp2px(30,(Activity)mContext);
 		drawable.setBounds(0, 0, 80, 80);
 		return drawable;
 	}
